@@ -1,0 +1,515 @@
+
+raw
+Medicine tracker · JSX
+import { useState } from "react";
+ 
+const COLORS = {
+  bg: "#0a0a0f",
+  card: "#13131a",
+  border: "#1e1e2e",
+  accent: "#00e5a0",
+  accentDim: "#00e5a020",
+  warn: "#f59e0b",
+  danger: "#ef4444",
+  text: "#f0f0f0",
+  muted: "#6b6b80",
+};
+ 
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: ${COLORS.bg};
+    color: ${COLORS.text};
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+ 
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse, #00e5a015 0%, transparent 70%);
+    pointer-events: none;
+  }
+ 
+  .pill-badge {
+    display: inline-block;
+    background: ${COLORS.accentDim};
+    color: ${COLORS.accent};
+    border: 1px solid #00e5a040;
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+ 
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+ 
+  h1 span { color: ${COLORS.accent}; }
+ 
+  .subtitle {
+    color: ${COLORS.muted};
+    font-size: 16px;
+    max-width: 420px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+ 
+  .main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 16px 60px;
+  }
+ 
+  .card {
+    background: ${COLORS.card};
+    border: 1px solid ${COLORS.border};
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+ 
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: ${COLORS.text};
+    letter-spacing: 0.02em;
+  }
+ 
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+ 
+  @media (max-width: 500px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+ 
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+ 
+  .form-group.full { grid-column: 1 / -1; }
+ 
+  label {
+    font-size: 12px;
+    color: ${COLORS.muted};
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+ 
+  input, select {
+    background: #0a0a0f;
+    border: 1px solid ${COLORS.border};
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: ${COLORS.text};
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+ 
+  input:focus, select:focus {
+    border-color: ${COLORS.accent};
+  }
+ 
+  input::placeholder { color: ${COLORS.muted}; }
+ 
+  select option { background: #13131a; }
+ 
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: ${COLORS.accent};
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.02em;
+  }
+ 
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+ 
+  .success-toast {
+    background: #00e5a015;
+    border: 1px solid #00e5a040;
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: ${COLORS.accent};
+    font-size: 14px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+ 
+  .section-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: ${COLORS.muted};
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+ 
+  .med-item {
+    background: ${COLORS.card};
+    border: 1px solid ${COLORS.border};
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color 0.2s;
+    animation: slideIn 0.3s ease;
+  }
+ 
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+ 
+  .med-item:hover { border-color: #2e2e40; }
+  .med-item.danger { border-color: #ef444430; }
+  .med-item.warn { border-color: #f59e0b30; }
+  .med-item.safe { border-color: #00e5a020; }
+ 
+  .med-info { flex: 1; min-width: 0; }
+ 
+  .med-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+ 
+  .med-meta {
+    font-size: 12px;
+    color: ${COLORS.muted};
+  }
+ 
+  .med-badge {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+ 
+  .badge-danger { background: #ef444420; color: #ef4444; }
+  .badge-warn { background: #f59e0b20; color: #f59e0b; }
+  .badge-safe { background: #00e5a020; color: #00e5a0; }
+ 
+  .del-btn {
+    background: none;
+    border: none;
+    color: ${COLORS.muted};
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .del-btn:hover { color: #ef4444; }
+ 
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+ 
+  .stat-box {
+    background: ${COLORS.card};
+    border: 1px solid ${COLORS.border};
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+ 
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+ 
+  .stat-label {
+    font-size: 11px;
+    color: ${COLORS.muted};
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+ 
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: ${COLORS.muted};
+    font-size: 14px;
+  }
+ 
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+ 
+  .coming-soon {
+    background: linear-gradient(135deg, #13131a, #0f0f1a);
+    border: 1px dashed #2e2e40;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+  }
+ 
+  .coming-soon p { color: ${COLORS.muted}; font-size: 13px; }
+  .coming-soon strong { color: ${COLORS.accent}; }
+ 
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: ${COLORS.card};
+    border: 1px solid ${COLORS.border};
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+ 
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    color: ${COLORS.muted};
+    font-family: 'DM Sans', sans-serif;
+  }
+ 
+  .tab.active {
+    background: ${COLORS.accent};
+    color: #000;
+    font-weight: 600;
+  }
+`;
+ 
+function getDaysLeft(expiryDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expiry = new Date(expiryDate);
+  return Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
+}
+ 
+function getStatus(days) {
+  if (days < 0) return { label: "Expired", cls: "danger", badgeCls: "badge-danger" };
+  if (days <= 30) return { label: `${days}d left`, cls: "danger", badgeCls: "badge-danger" };
+  if (days <= 90) return { label: `${days}d left`, cls: "warn", badgeCls: "badge-warn" };
+  return { label: `${days}d left`, cls: "safe", badgeCls: "badge-safe" };
+}
+ 
+const SAMPLE = [
+  { id: 1, name: "Paracetamol 500mg", expiry: "2025-07-15", email: "demo@email.com", qty: "1 strip" },
+  { id: 2, name: "Vitamin D3", expiry: "2026-01-10", email: "demo@email.com", qty: "60 tablets" },
+  { id: 3, name: "Azithromycin", expiry: "2025-06-20", email: "demo@email.com", qty: "3 tablets" },
+];
+ 
+export default function App() {
+  const [medicines, setMedicines] = useState(SAMPLE);
+  const [tab, setTab] = useState("add");
+  const [form, setForm] = useState({ name: "", expiry: "", email: "", qty: "", reminder: "30" });
+  const [success, setSuccess] = useState(false);
+ 
+  const handleAdd = () => {
+    if (!form.name || !form.expiry || !form.email) return;
+    const newMed = { ...form, id: Date.now() };
+    setMedicines([newMed, ...medicines]);
+    setForm({ name: "", expiry: "", email: "", qty: "", reminder: "30" });
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 3000);
+    setTab("dashboard");
+  };
+ 
+  const del = (id) => setMedicines(medicines.filter(m => m.id !== id));
+ 
+  const expired = medicines.filter(m => getDaysLeft(m.expiry) < 0).length;
+  const expiringSoon = medicines.filter(m => { const d = getDaysLeft(m.expiry); return d >= 0 && d <= 30; }).length;
+  const safe = medicines.filter(m => getDaysLeft(m.expiry) > 30).length;
+ 
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="hero">
+        <div className="pill-badge">💊 Free · No Signup Required</div>
+        <h1>Never take an<br /><span>expired medicine</span><br />again</h1>
+        <p className="subtitle">Add your medicines. Get a call/email reminder before they expire. Simple.</p>
+      </div>
+ 
+      <div className="main">
+        <div className="tabs">
+          <button className={`tab ${tab === "add" ? "active" : ""}`} onClick={() => setTab("add")}>+ Add Medicine</button>
+          <button className={`tab ${tab === "dashboard" ? "active" : ""}`} onClick={() => setTab("dashboard")}>
+            My Cabinet {medicines.length > 0 && `(${medicines.length})`}
+          </button>
+        </div>
+ 
+        {tab === "add" && (
+          <div className="card">
+            <div className="card-title">Add a Medicine</div>
+            <div className="form-grid">
+              <div className="form-group full">
+                <label>Medicine Name *</label>
+                <input
+                  placeholder="e.g. Paracetamol 500mg"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Expiry Date *</label>
+                <input
+                  type="date"
+                  value={form.expiry}
+                  onChange={e => setForm({ ...form, expiry: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Quantity / Notes</label>
+                <input
+                  placeholder="e.g. 1 strip, 30 tabs"
+                  value={form.qty}
+                  onChange={e => setForm({ ...form, qty: e.target.value })}
+                />
+              </div>
+              <div className="form-group full">
+                <label>Your Email (for reminder) *</label>
+                <input
+                  type="email"
+                  placeholder="you@email.com"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+              <div className="form-group full">
+                <label>Remind me before expiry</label>
+                <select value={form.reminder} onChange={e => setForm({ ...form, reminder: e.target.value })}>
+                  <option value="7">7 days before</option>
+                  <option value="14">14 days before</option>
+                  <option value="30">30 days before</option>
+                  <option value="60">60 days before</option>
+                </select>
+              </div>
+            </div>
+ 
+            <button className="btn-primary" onClick={handleAdd}>
+              Add & Set Reminder →
+            </button>
+ 
+            {success && (
+              <div className="success-toast">
+                ✅ Medicine added! Reminder scheduled {form.reminder || "30"} days before expiry.
+              </div>
+            )}
+ 
+            <div className="coming-soon">
+              <p>📞 <strong>Phone Call Reminder</strong> — Coming Soon! Currently email only.</p>
+            </div>
+          </div>
+        )}
+ 
+        {tab === "dashboard" && (
+          <>
+            <div className="stats-row">
+              <div className="stat-box">
+                <div className="stat-num" style={{ color: "#ef4444" }}>{expired}</div>
+                <div className="stat-label">Expired</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-num" style={{ color: "#f59e0b" }}>{expiringSoon}</div>
+                <div className="stat-label">Expiring Soon</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-num" style={{ color: "#00e5a0" }}>{safe}</div>
+                <div className="stat-label">Safe</div>
+              </div>
+            </div>
+ 
+            {medicines.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">💊</div>
+                <p>No medicines added yet.<br />Click "Add Medicine" to start.</p>
+              </div>
+            ) : (
+              <>
+                <div className="section-header">Your Medicine Cabinet</div>
+                {[...medicines].sort((a, b) => getDaysLeft(a.expiry) - getDaysLeft(b.expiry)).map(m => {
+                  const days = getDaysLeft(m.expiry);
+                  const status = getStatus(days);
+                  return (
+                    <div key={m.id} className={`med-item ${status.cls}`}>
+                      <div className="med-info">
+                        <div className="med-name">💊 {m.name}</div>
+                        <div className="med-meta">
+                          Exp: {new Date(m.expiry).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          {m.qty && ` · ${m.qty}`}
+                          {` · 📧 ${m.email}`}
+                        </div>
+                      </div>
+                      <span className={`med-badge ${status.badgeCls}`}>{status.label}</span>
+                      <button className="del-btn" onClick={() => del(m.id)} title="Remove">✕</button>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
